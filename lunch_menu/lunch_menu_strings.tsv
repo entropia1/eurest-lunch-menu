@@ -1,0 +1,51 @@
+soupSource	SOUP
+mainDishesSource	MAIN COURSE
+mainDishesOrSource	OR
+supplementsSource	SIDE DISHES
+dessertsSource	DESSERT
+dateFormatSource	"%A %B %d"
+dateFormatSource2	"%A, %B %d"
+weekdaySeparator	" "
+lunchMenuURL	http://155.56.69.85:1081/lunch_en.txt
+monday	Monday
+tuesday	Tuesday
+wednesday	Wednesday
+thursday	Thursday
+friday	Friday
+saturday	Saturday
+sunday	Sunday
+today	Today
+soupDisplayed	Soup
+mainDishesDisplayed	Main Dishes
+supplementsDisplayed	Side dishes
+dessertsDisplayed	Desserts
+lunchMenuFor	Lunch Menu for
+dateFormatDisplayed	"%A %B %d"
+noContents	Nothing for today.
+additive_+	Vegetarian 
+additive_1	Contains preservative 
+additive_2	Contains artificial colouring 
+additive_3	Contains antioxidants 
+additive_4	Contains flavour enhancer 
+additive_5	Contains phosphate 
+additive_6	Contains artificial sweeteners 
+additive_7	Contains a source of phenylalanine 
+additive_8	Contains sulphur 
+additive_9	Contains black food colouring 
+additive_10	treated with wax 
+additive_11	Contains caffeine 
+additive_12	Contains quinine 
+additive_13	Alcohol (EUREST labelling requirement) 
+additive_G	Garlic 
+additive_L	Lactose free 
+additive_N	Nuts 
+additive_V	vegan 
+noLunchToday	No lunch today...
+toggleLanguage	German
+toggleLanguage2	English
+toggleLocale	de_DE
+parseLocaleError	Could not parse the lunch menu. Probably the language support is not installed.
+otherException	An error occurred:
+installLocaleButton	Install language support
+installLocaleSuccess	Installation successful. Please reopen the Lunchinator window.
+installLocaleError	Installation failed.

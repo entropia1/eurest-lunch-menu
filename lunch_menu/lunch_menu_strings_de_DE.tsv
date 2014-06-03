@@ -1,0 +1,51 @@
+soupSource	SUPPE
+mainDishesSource	HAUPTGERICHT
+mainDishesOrSource	ODER
+supplementsSource	BEILAGEN
+dessertsSource	DESSERT
+dateFormatSource	"%A, %d. %B"
+dateFormatSource2	"%A, %d.%B"
+weekdaySeparator	","
+lunchMenuURL	http://155.56.69.85:1081/lunch_de.txt
+monday	Montag
+tuesday	Dienstag
+wednesday	Mittwoch
+thursday	Donnerstag
+friday	Freitag
+saturday	Samstag
+sunday	Sonntag
+today	Heute
+soupDisplayed	Suppe
+mainDishesDisplayed	Hauptgerichte
+supplementsDisplayed	Beilagen
+dessertsDisplayed	Desserts
+lunchMenuFor	Menü am
+dateFormatDisplayed	"%A, den %d. %B"
+noContents	Gibt es heute nicht.
+additive_+	Vegetarisch 
+additive_1	Mit Konservierungsstoff 
+additive_2	Mit Farbstoff 
+additive_3	Mit Antioxidationsmittel 
+additive_4	Mit Geschmacksverstärker 
+additive_5	Mit Phosphat 
+additive_6	Mit Süßungsmittel(n) 
+additive_7	Enthält eine Phenylalaninquelle 
+additive_8	Geschwefelt 
+additive_9	Geschwärzt 
+additive_10	Gewachst 
+additive_11	Koffeinhaltig 
+additive_12	Chininhaltig 
+additive_13	Enthält Alkohol (EUREST - interne Kennzeichnungspflicht) 
+additive_K	Knoblauch 
+additive_L	Laktosefrei 
+additive_N	Nüsse 
+additive_V	Vegan 
+noLunchToday	Nix zu essen heute...
+toggleLanguage	Englisch
+toggleLanguage2	Deutsch
+toggleLocale	en_US
+parseLocaleError	Konnte das Menü nicht parsen. Möglicherweise ist die erforderliche Sprachunterstützung nicht installiert.
+otherException	Es ist ein Fehler aufgetreten:
+installLocaleButton	Sprachunterstützung installieren
+installLocaleSuccess	Installation erfolgreich. Bitte das Lunchinator-Fenster schließen und erneut öffnen.
+installLocaleError	Installation fehlgeschlagen.

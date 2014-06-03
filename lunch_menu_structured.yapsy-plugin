@@ -1,0 +1,9 @@
+[Core]
+Name = corny.lunchinator.lunch_menu_structured
+Module = lunch_menu_structured
+
+[Documentation]
+Author = Cornelius Ratsch
+Version = 1.0
+Website = http://www.lunchinator.de
+Description = Displays the lunch menu downloaded from the internet, in a structured way.
