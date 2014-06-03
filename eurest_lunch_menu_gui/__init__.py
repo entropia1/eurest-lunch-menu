@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from lunchinator.iface_plugins import iface_gui_plugin
-from lunch_menu_structured_gui import lunch_menu_structured_gui
-from lunch_menu import LunchMenu
+from eurest_lunch_menu_gui.lunch_menu_widget import LunchMenuWidget
+from eurest_lunch_menu import LunchMenu
 from lunchinator.cli import LunchCLIModule
 
 class lunch_menu_structured(iface_gui_plugin, LunchCLIModule):
@@ -19,7 +19,7 @@ class lunch_menu_structured(iface_gui_plugin, LunchCLIModule):
         return "Eurest Lunch Menu"
 
     def create_widget(self, parent):
-        return lunch_menu_structured_gui(parent)
+        return LunchMenuWidget(parent)
     
     def add_menu(self,menu):
         pass

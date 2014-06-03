@@ -5,7 +5,7 @@ import os
 import inspect
 import sys
 import time
-from lunch_menu import LunchMenu
+from eurest_lunch_menu import LunchMenu
 from lunchinator import get_server, log_error
 
 class LunchStatisticsThread(threading.Thread):

@@ -14,12 +14,12 @@ except ImportError:
     from lunchinator import log_exception, log_debug, convert_string
 
 try:
-    from lunch_menu import LunchMenu
+    from eurest_lunch_menu import LunchMenu
 except ImportError:
     currentFolder = os.path.realpath(os.path.abspath(os.path.join(os.path.split(os.path.split(inspect.getfile( inspect.currentframe() ))[0])[0])))
     if currentFolder not in sys.path:
         sys.path.insert(0, currentFolder)
-    from lunch_menu import LunchMenu
+    from eurest_lunch_menu import LunchMenu
     
 class GrowingTextEdit(QTextEdit):
     def __init__(self, parent, messages):
@@ -61,12 +61,12 @@ class GrowingTextEdit(QTextEdit):
             self.showToolTip(event.x(), event.y())
         return QTextEdit.event(self, event)
             
-class lunch_menu_structured_gui(QWidget):
+class LunchMenuWidget(QWidget):
     textViewIndex = 0
     textViewAdditivesMap = {}
     
     def __init__(self, parent):
-        super(lunch_menu_structured_gui, self).__init__(parent)
+        super(LunchMenuWidget, self).__init__(parent)
         
         self.messages = LunchMenu.messages()
         self.toggleMessages = LunchMenu.toggleMessages()
@@ -297,4 +297,4 @@ class lunch_menu_structured_gui(QWidget):
 
 if __name__ == "__main__":
     from lunchinator.iface_plugins import iface_gui_plugin
-    iface_gui_plugin.run_standalone(lambda window: lunch_menu_structured_gui(window))
+    iface_gui_plugin.run_standalone(lambda window: LunchMenuWidget(window))

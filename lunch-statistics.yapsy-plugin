@@ -1,9 +1,9 @@
 [Core]
 Name = corny.lunchinator.lunch_statistics
-Module = lunch_statistics
+Module = eurest_lunch_menu_statistics
 
 [Documentation]
 Author = Cornelius Ratsch
 Version = 0.1
 Website = http://www.lunchinator.de
-Description = Collects information about the lunch at SAP.
+Description = Collects information about the Eurest lunch menu.
