@@ -1,5 +1,5 @@
 [Core]
-Name = corny.lunchinator.lunch_menu_structured
+Name = corny.lunchinator.eurest-lunch-menu-gui
 Module = eurest_lunch_menu_gui
 
 [Documentation]

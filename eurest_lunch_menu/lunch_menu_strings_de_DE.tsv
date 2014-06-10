@@ -1,12 +1,7 @@
 soupSource	SUPPE
-mainDishesSource	HAUPTGERICHT
-mainDishesOrSource	ODER
+mainDishesSourcePrefix	HAUPTGANG
 supplementsSource	BEILAGEN
 dessertsSource	DESSERT
-dateFormatSource	"%A, %d. %B"
-dateFormatSource2	"%A, %d.%B"
-weekdaySeparator	","
-lunchMenuURL	http://155.56.69.85:1081/lunch_de.txt
 monday	Montag
 tuesday	Dienstag
 wednesday	Mittwoch

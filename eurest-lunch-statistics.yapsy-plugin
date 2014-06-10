@@ -1,5 +1,5 @@
 [Core]
-Name = corny.lunchinator.lunch_statistics
+Name = corny.lunchinator.eurest-lunch-statistics
 Module = eurest_lunch_menu_statistics
 
 [Documentation]

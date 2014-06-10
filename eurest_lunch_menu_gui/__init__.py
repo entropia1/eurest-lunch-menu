@@ -8,9 +8,11 @@ class lunch_menu_structured(iface_gui_plugin, LunchCLIModule):
     def __init__(self):
         iface_gui_plugin.__init__(self)
         LunchCLIModule.__init__(self)
+        self.options = [((u"url", u"Lunch Menu URL"), "")]
         
     def activate(self):
         iface_gui_plugin.activate(self)
+        LunchMenu.initialize(self.get_option(u"url"))
         
     def deactivate(self):
         iface_gui_plugin.deactivate(self)

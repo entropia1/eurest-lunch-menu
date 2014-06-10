@@ -253,7 +253,7 @@ class LunchMenuWidget(QWidget):
             for content_line in content:
                 textview.append(content_line)
         
-        additives = LunchMenu.findAdditives(convert_string(textview.toPlainText()))
+        additives = {}#LunchMenu.findAdditives(convert_string(textview.toPlainText()))
         textview.additives = additives
         
         box.addWidget(textview, 0)
@@ -296,5 +296,6 @@ class LunchMenuWidget(QWidget):
 
 
 if __name__ == "__main__":
+    LunchMenu.initialize()
     from lunchinator.iface_plugins import iface_gui_plugin
     iface_gui_plugin.run_standalone(lambda window: LunchMenuWidget(window))
