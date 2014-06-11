@@ -14,7 +14,7 @@ from lunchinator import log_debug, log_exception
 import codecs
 import contextlib
 import json
-    
+
 class LunchMenu (object):    
     def __init__(self):
         self.lunchDate = None
@@ -110,7 +110,7 @@ class LunchMenu (object):
         
     @classmethod
     def initialize(cls, url=None):
-        if not cls._url:
+        if url:
             cls._url = url
         try:
             cls.defaultLocaleString = locale.getdefaultlocale()[0]
@@ -182,11 +182,11 @@ class LunchMenu (object):
     
     @classmethod
     def readLunchMenus(cls, localeStr, messages):
+        if not cls._url:
+            return [Exception(messages[u"checkURL"])]*5
+        
         lunchMenus = [None, None, None, None, None]
         localeStr = localeStr[:2]
-        
-        if not cls._url:
-            return lunchMenus
         
         with contextlib.closing(urllib2.urlopen(cls._url)) as urlInput:
             lunchJSON = urlInput.read()

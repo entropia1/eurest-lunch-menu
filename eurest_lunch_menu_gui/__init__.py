@@ -8,10 +8,11 @@ class lunch_menu_structured(iface_gui_plugin, LunchCLIModule):
     def __init__(self):
         iface_gui_plugin.__init__(self)
         LunchCLIModule.__init__(self)
-        self.options = [((u"url", u"Lunch Menu URL"), "")]
+        self.options = [((u"url", u"Lunch Menu URL", self._urlChanged), "")]
         
     def activate(self):
         iface_gui_plugin.activate(self)
+        self._widget = None
         LunchMenu.initialize(self.get_option(u"url"))
         
     def deactivate(self):
@@ -21,7 +22,15 @@ class lunch_menu_structured(iface_gui_plugin, LunchCLIModule):
         return "Eurest Lunch Menu"
 
     def create_widget(self, parent):
-        return LunchMenuWidget(parent)
+        self._widget = LunchMenuWidget(parent)
+        return self._widget
+    
+    def _urlChanged(self, _oldVal, newVal):
+        LunchMenu.initialize(newVal)
+        if self._widget != None:
+            self._widget.createNotebook()
+            self._widget.goToday()
+        return newVal
     
     def add_menu(self,menu):
         pass

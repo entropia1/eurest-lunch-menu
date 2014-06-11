@@ -1,3 +1,4 @@
+checkURL	Check if a valid URL is specified in the settings dialog.
 soupSource	SOUP
 mainDishesSourcePrefix	MAIN COURSE
 supplementsSource	SIDE DISH

@@ -259,8 +259,9 @@ class LunchMenuWidget(QWidget):
         box.addWidget(textview, 0)
     
     def createNotebook(self):
+        self.combobox.setCurrentIndex(0)
         for _ in range(self.menuNotebook.count()):
-            self.menuNotebook.remove(self.menuNotebook.widget(0))
+            self.menuNotebook.removeWidget(self.menuNotebook.widget(0))
         curMessages = self.messages
         for index in range(10):
             if index == 5:
