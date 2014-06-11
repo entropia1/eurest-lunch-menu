@@ -39,6 +39,9 @@ class LunchMenu (object):
     _toggleLunchMenus= None
     _allLunchMenus = None
     
+    _additives = None
+    _toggleAdditives = None
+    
     _lastUpdate = None
     
     @classmethod
@@ -73,6 +76,14 @@ class LunchMenu (object):
     def toggleMessages(cls):
         cls._checkOutdated()
         return cls._toggleMessages
+    
+    @classmethod
+    def additives(cls):
+        return cls._additives
+    
+    @classmethod
+    def toggleAdditives(cls):
+        return cls._toggleAdditives
     
     @classmethod
     def getEnglishMenus(cls):
@@ -124,7 +135,7 @@ class LunchMenu (object):
         
         try:
             locale.setlocale(locale.LC_TIME, (cls.defaultLocaleString,"UTF-8"))
-            cls._lunchMenus = cls.readLunchMenus(cls.defaultLocaleString, cls._messages)
+            cls._lunchMenus, cls._additives = cls.readLunchMenus(cls.defaultLocaleString, cls._messages)
         except Exception as e:
             log_exception(u"Error reading lunch menus")
             cls._lunchMenus = []
@@ -134,7 +145,7 @@ class LunchMenu (object):
         
         try:
             locale.setlocale(locale.LC_TIME, (cls._messages['toggleLocale'],"UTF-8"))
-            cls._toggleLunchMenus = cls.readLunchMenus(cls._messages['toggleLocale'], cls._toggleMessages)
+            cls._toggleLunchMenus, cls._toggleAdditives = cls.readLunchMenus(cls._messages['toggleLocale'], cls._toggleMessages)
         except Exception as e:
             cls._toggleLunchMenus = []
             for _ in range(5):
@@ -190,11 +201,15 @@ class LunchMenu (object):
         
         with contextlib.closing(urllib2.urlopen(cls._url)) as urlInput:
             lunchJSON = urlInput.read()
-            lunchObj = json.loads(lunchJSON)[u"menu"]
+            lunchObj = json.loads(lunchJSON)
             
         days = [u"mon", u"tue", u"wed", u"thu", u"fri"]
+        
+        additivesDict = {}
+        for additive in lunchObj[u"settings"][u"additives"]:
+            additivesDict[additive[u"id"]] = additive[u"text"][localeStr]
             
-        for lunchDay in lunchObj:
+        for lunchDay in lunchObj[u"menu"]:
             menu = LunchMenu()
             
             unixDate = lunchDay[u"date"]
@@ -204,10 +219,15 @@ class LunchMenu (object):
             for counter in counters:
                 lineDesc = counter[u"title"][localeStr].upper()
                 for dishDict in counter[u"dishes"]:
-                    lineContent = dishDict[u"title"][localeStr]
+                    if u"additives" in dishDict:
+                        additives = dishDict[u"additives"]
+                    else:
+                        additives = None
+                        
+                    lineContent = (dishDict[u"title"][localeStr].strip(), additives)
                     
                     if lineDesc.startswith(messages['soupSource']):
-                        menu.contents[messages['soupDisplayed']] = lineContent
+                        cls.addListMenuContent(menu, messages['soupDisplayed'], lineContent)
                     elif lineDesc.startswith(messages['mainDishesSourcePrefix']):
                         cls.addListMenuContent(menu, messages['mainDishesDisplayed'], lineContent)
                     elif lineDesc.startswith(messages['supplementsSource']):
@@ -217,7 +237,7 @@ class LunchMenu (object):
             
             lunchMenus[days.index(weekDay)] = menu
                 
-        return lunchMenus
+        return lunchMenus, additivesDict
 
 if __name__ == '__main__':
     LunchMenu.initialize()

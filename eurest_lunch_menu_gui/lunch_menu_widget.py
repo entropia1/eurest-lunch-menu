@@ -22,12 +22,13 @@ except ImportError:
     from eurest_lunch_menu import LunchMenu
     
 class GrowingTextEdit(QTextEdit):
-    def __init__(self, parent, messages):
+    def __init__(self, parent, messages, additivesDict):
         super(GrowingTextEdit, self).__init__(parent)  
         self.document().contentsChanged.connect(self.sizeChange)
 
         self.additives = {}
         self.messages = messages
+        self.additivesDict = additivesDict
         self.heightMin = 0
         self.heightMax = 65000
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Maximum)
@@ -53,13 +54,41 @@ class GrowingTextEdit(QTextEdit):
     def showToolTip(self, posX, posY):
         cursor = self.cursorForPosition(QPoint(posX, posY))
         offset = cursor.position()
+        if offset - 1 in self.additives:
+            # also display additive if mouse over next character
+            offset -= 1
         if offset in self.additives:
-            self.setToolTip(u"%s: %s" % (self.additives[offset], self.messages[u"additive_%s" % self.additives[offset]]))
+            self.setToolTip(u"%s: %s" % (self.additives[offset], self.additivesDict[self.additives[offset]]))
     
     def event(self, event):
         if event.type() == QEvent.ToolTip:
             self.showToolTip(event.x(), event.y())
         return QTextEdit.event(self, event)
+    
+    def append(self, text, additives):
+        if additives:
+            text += u" ("
+            selfText = convert_string(self.toPlainText())
+            if selfText:
+                selfLen = len(selfText) + 1 # newline at end
+            else:
+                selfLen = 0
+            textLen = selfLen + len(text)
+            
+            first = True
+            for additive in additives:
+                if not first:
+                    text += u", "
+                    textLen += 2
+                    
+                for pos in xrange(textLen, textLen + len(additive)): 
+                    self.additives[pos] = additive
+                text += additive
+                
+                textLen += len(additive)
+                first = False
+            text += u")"
+        super(GrowingTextEdit, self).append(text)
             
 class LunchMenuWidget(QWidget):
     textViewIndex = 0
@@ -70,6 +99,9 @@ class LunchMenuWidget(QWidget):
         
         self.messages = LunchMenu.messages()
         self.toggleMessages = LunchMenu.toggleMessages()
+        
+        self.additives = LunchMenu.additives()
+        self.toggleAdditives = LunchMenu.toggleAdditives()
         
         layout = QVBoxLayout(self)
         
@@ -210,7 +242,7 @@ class LunchMenuWidget(QWidget):
             aButton.clicked.connect(self.installLanguageSupport)
         box.addWidget(aButton)
         
-    def addExceptionPage(self, parent, box, error, toggle):
+    def addExceptionPage(self, parent, box, error, _toggle):
         aLabel = QLabel(self.messages['otherException'] + u" " + unicode(error), parent)
         aLabel.setWordWrap(True)
         box.addWidget(aLabel)
@@ -227,34 +259,32 @@ class LunchMenuWidget(QWidget):
     def installLanguageSupportToggle(self):
         self.installLanguageSupportForLocale(self.messages['toggleLocale'])
 
-    def addMenuContent(self, parent, desc, menuContents, box, messages):
+    def addMenuContent(self, parent, desc, menuContents, box, messages, additivesDict):
         self.addMenuLine(parent, desc, box)
         if desc in menuContents:
-            content = menuContents[desc]
+            contentList = menuContents[desc]
         else:
-            content = messages[u'noContents']
+            contentList = [messages[u'noContents']]
             log_debug("lunch menu does not contain key '%s'" % desc)
         
-        textview = GrowingTextEdit(parent, self.messages)
+        textview = GrowingTextEdit(parent, messages, additivesDict)
         textview.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         textview.setVerticalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         textview.setLineWrapMode(QTextEdit.WidgetWidth)
         textview.setReadOnly(True)
         textview.document().setIndentWidth(10)
         
-        if type(content) in (unicode, str):
-            textview.append(content)
-        elif type(content) is list:
+        if len(contentList) == 1:
+            content, additives = contentList[0]
+            textview.append(content, additives)
+        elif len(contentList) > 1:
             cursor = textview.textCursor()
             listFormat = QTextListFormat()
             listFormat.setStyle(QTextListFormat.ListDisc)
             listFormat.setIndent(1)
             cursor.createList(listFormat)
-            for content_line in content:
-                textview.append(content_line)
-        
-        additives = {}#LunchMenu.findAdditives(convert_string(textview.toPlainText()))
-        textview.additives = additives
+            for content_line, additives in contentList:
+                textview.append(content_line, additives)
         
         box.addWidget(textview, 0)
     
@@ -263,6 +293,7 @@ class LunchMenuWidget(QWidget):
         for _ in range(self.menuNotebook.count()):
             self.menuNotebook.removeWidget(self.menuNotebook.widget(0))
         curMessages = self.messages
+        curAdditives = self.additives
         for index in range(10):
             if index == 5:
                 try:
@@ -270,6 +301,7 @@ class LunchMenuWidget(QWidget):
                 except:
                     log_exception("error setting locale")
                 curMessages = self.toggleMessages
+                curAdditives = self.toggleAdditives
             pageWidget = QWidget(self.menuNotebook)
             page = QVBoxLayout(pageWidget)
             thisLunchMenu = LunchMenu.allLunchMenus()[index]
@@ -277,10 +309,10 @@ class LunchMenuWidget(QWidget):
                 title = curMessages['lunchMenuFor'] + u" " + thisLunchMenu.lunchDate.strftime(curMessages['dateFormatDisplayed']).decode("utf-8")
                 self.addMenuLine(pageWidget, title, page, True)
                 if thisLunchMenu.isValid():
-                    self.addMenuContent(pageWidget, curMessages['soupDisplayed'], thisLunchMenu.contents, page, curMessages)
-                    self.addMenuContent(pageWidget, curMessages['mainDishesDisplayed'], thisLunchMenu.contents, page, curMessages)
-                    self.addMenuContent(pageWidget, curMessages['supplementsDisplayed'], thisLunchMenu.contents, page, curMessages)
-                    self.addMenuContent(pageWidget, curMessages['dessertsDisplayed'], thisLunchMenu.contents, page, curMessages)
+                    self.addMenuContent(pageWidget, curMessages['soupDisplayed'], thisLunchMenu.contents, page, curMessages, curAdditives)
+                    self.addMenuContent(pageWidget, curMessages['mainDishesDisplayed'], thisLunchMenu.contents, page, curMessages, curAdditives)
+                    self.addMenuContent(pageWidget, curMessages['supplementsDisplayed'], thisLunchMenu.contents, page, curMessages, curAdditives)
+                    self.addMenuContent(pageWidget, curMessages['dessertsDisplayed'], thisLunchMenu.contents, page, curMessages, curAdditives)
                 else:
                     self.addMenuLine(pageWidget, curMessages['noLunchToday'], page)
             elif type(thisLunchMenu) == locale.Error:
@@ -297,6 +329,6 @@ class LunchMenuWidget(QWidget):
 
 
 if __name__ == "__main__":
-    LunchMenu.initialize()
+    LunchMenu.initialize("http://app.sap.eurest.de//mobileajax/data/46ba857b78fd4e51301592db98f8d9ae/all.json")
     from lunchinator.iface_plugins import iface_gui_plugin
     iface_gui_plugin.run_standalone(lambda window: LunchMenuWidget(window))
