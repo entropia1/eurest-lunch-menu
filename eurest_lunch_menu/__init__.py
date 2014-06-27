@@ -217,23 +217,37 @@ class LunchMenu (object):
             menu.lunchDate = datetime.datetime.fromtimestamp(unixDate).date()
             counters = lunchDay[u"counters"]
             for counter in counters:
-                lineDesc = counter[u"title"][localeStr].upper()
+                lineDesc = counter[u"title"][localeStr]
+                lineDescUpper = lineDesc.upper()
                 for dishDict in counter[u"dishes"]:
                     if u"additives" in dishDict:
                         additives = dishDict[u"additives"]
                     else:
                         additives = None
                         
-                    lineContent = (dishDict[u"title"][localeStr].strip(), additives)
+                    if u"description" in dishDict:
+                        description = dishDict[u"description"][localeStr].strip()
+                    else:
+                        description = None
+                        
+                    if u"title" in dishDict:
+                        title = dishDict[u"title"][localeStr].strip()
+                    else:
+                        title = None
+                        
                     
-                    if lineDesc.startswith(messages['soupSource']):
-                        cls.addListMenuContent(menu, messages['soupDisplayed'], lineContent)
-                    elif lineDesc.startswith(messages['mainDishesSourcePrefix']):
-                        cls.addListMenuContent(menu, messages['mainDishesDisplayed'], lineContent)
-                    elif lineDesc.startswith(messages['supplementsSource']):
-                        cls.addListMenuContent(menu, messages['supplementsDisplayed'], lineContent)
-                    elif lineDesc.startswith(messages['dessertsSource']):
-                        cls.addListMenuContent(menu, messages['dessertsDisplayed'], lineContent)
+                    for keyBase in (u'soup', u'mainDishes', u'supplements', u'desserts'):
+                        if lineDescUpper.startswith(messages[keyBase + u"Source"]):
+                            keyInfo = lineDesc[len(messages[keyBase + u"Source"]):].strip()
+                            if len(keyInfo) <= 2:
+                                # ignore numbers and affixes
+                                keyInfo = None
+                            elif u"(" in keyInfo and u")" in keyInfo:
+                                # extract stuff in braces 
+                                keyInfo = keyInfo[keyInfo.index(u"(") + 1:keyInfo.index(u")")]
+                                
+                            lineContent = (title, description, additives, keyInfo)
+                            cls.addListMenuContent(menu, messages[keyBase + u"Displayed"], lineContent)
             
             lunchMenus[days.index(weekDay)] = menu
                 

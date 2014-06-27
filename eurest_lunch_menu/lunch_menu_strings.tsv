@@ -1,6 +1,6 @@
 checkURL	Check if a valid URL is specified in the settings dialog.
 soupSource	SOUP
-mainDishesSourcePrefix	MAIN COURSE
+mainDishesSource	MAIN COURSE
 supplementsSource	SIDE DISH
 dessertsSource	DESSERT
 monday	Monday

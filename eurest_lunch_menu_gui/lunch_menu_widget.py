@@ -5,7 +5,7 @@ import sys
 import locale
 import subprocess
 from PyQt4.QtGui import QLabel, QWidget, QHBoxLayout, QVBoxLayout, QPushButton, QComboBox, QTextEdit, QStackedWidget, QToolButton, QFont, QMessageBox, QSizePolicy, QTextListFormat
-from PyQt4.QtCore import Qt, QObject, QSize, QEvent, QPoint
+from PyQt4.QtCore import Qt, QSize, QEvent, QPoint
 
 try:
     from lunchinator import log_exception, log_debug, convert_string
@@ -259,6 +259,18 @@ class LunchMenuWidget(QWidget):
     def installLanguageSupportToggle(self):
         self.installLanguageSupportForLocale(self.messages['toggleLocale'])
 
+    def formatTitleAndDescription(self, title, description, keyInfo):
+        if title and description:
+            result = "%s, %s" % (title, description)
+        elif title:
+            result = title
+        else:
+            result = description
+        
+        if keyInfo:
+            return "%s: %s" % (keyInfo.title(), result)
+        return result
+
     def addMenuContent(self, parent, desc, menuContents, box, messages, additivesDict):
         self.addMenuLine(parent, desc, box)
         if desc in menuContents:
@@ -275,16 +287,16 @@ class LunchMenuWidget(QWidget):
         textview.document().setIndentWidth(10)
         
         if len(contentList) == 1:
-            content, additives = contentList[0]
-            textview.append(content, additives)
+            title, description, additives, keyInfo = contentList[0]
+            textview.append(self.formatTitleAndDescription(title, description, keyInfo), additives)
         elif len(contentList) > 1:
             cursor = textview.textCursor()
             listFormat = QTextListFormat()
             listFormat.setStyle(QTextListFormat.ListDisc)
             listFormat.setIndent(1)
             cursor.createList(listFormat)
-            for content_line, additives in contentList:
-                textview.append(content_line, additives)
+            for title, description, additives, keyInfo in contentList:
+                textview.append(self.formatTitleAndDescription(title, description, keyInfo), additives)
         
         box.addWidget(textview, 0)
     
