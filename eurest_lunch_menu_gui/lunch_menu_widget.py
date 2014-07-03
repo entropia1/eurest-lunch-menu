@@ -97,13 +97,22 @@ class LunchMenuWidget(QWidget):
     def __init__(self, parent):
         super(LunchMenuWidget, self).__init__(parent)
         
+        box = QVBoxLayout(self)
+        box.addWidget(QLabel(u"Initializing...", self))
+    
+    def initializeLayout(self):
+        layout = self.layout()
+        
+        child = layout.takeAt(0)
+        while child != None:
+            child.widget().deleteLater()
+            child = layout.takeAt(0)
+        
         self.messages = LunchMenu.messages()
         self.toggleMessages = LunchMenu.toggleMessages()
         
         self.additives = LunchMenu.additives()
         self.toggleAdditives = LunchMenu.toggleAdditives()
-        
-        layout = QVBoxLayout(self)
         
         buttonBar = self.createButtonBar(self)
         
@@ -113,9 +122,7 @@ class LunchMenuWidget(QWidget):
         self.createNotebook()
         layout.addWidget(self.menuNotebook)
         
-        self.goToday()
-        
-        self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Maximum)
+        self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.MinimumExpanding)
     
     def create_arrow_button(self, parent, arrow_type):
         button = QToolButton(parent)
@@ -228,7 +235,7 @@ class LunchMenuWidget(QWidget):
             aLabel.setAlignment(Qt.AlignCenter)
             oldFont = aLabel.font()
             aLabel.setFont(QFont(oldFont.family(), 13, QFont.Bold))
-        box.addWidget(aLabel)
+        box.addWidget(aLabel, 0, Qt.AlignBottom)
         
     def addLocaleErrorPage(self, parent, box, toggle):
         aLabel = QLabel(self.messages['parseLocaleError'], parent)
@@ -338,9 +345,17 @@ class LunchMenuWidget(QWidget):
             locale.setlocale(locale.LC_TIME, (LunchMenu.defaultLocaleString,"UTF-8"))
         except:
             log_exception("error setting locale")
-
+        
+        self.goToday()
 
 if __name__ == "__main__":
-    LunchMenu.initialize("http://app.sap.eurest.de//mobileajax/data/46ba857b78fd4e51301592db98f8d9ae/all.json")
+    def initWidget(window):
+        from lunchinator.callables import AsyncCall
+        w = LunchMenuWidget(window)
+        AsyncCall(w,
+                  LunchMenu.initialize,
+                  w.initializeLayout)("http://app.sap.eurest.de//mobileajax/data/46ba857b78fd4e51301592db98f8d9ae/all.json")
+        return w
+    
     from lunchinator.iface_plugins import iface_gui_plugin
-    iface_gui_plugin.run_standalone(lambda window: LunchMenuWidget(window))
+    iface_gui_plugin.run_standalone(initWidget)

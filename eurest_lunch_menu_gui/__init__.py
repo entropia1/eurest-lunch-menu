@@ -3,17 +3,19 @@ from lunchinator.iface_plugins import iface_gui_plugin
 from eurest_lunch_menu_gui.lunch_menu_widget import LunchMenuWidget
 from eurest_lunch_menu import LunchMenu
 from lunchinator.cli import LunchCLIModule
+from lunchinator.callables import AsyncCall
+from functools import partial
 
 class lunch_menu_structured(iface_gui_plugin, LunchCLIModule):
     def __init__(self):
         iface_gui_plugin.__init__(self)
         LunchCLIModule.__init__(self)
         self.options = [((u"url", u"Lunch Menu URL", self._urlChanged), "")]
+        self._initLunchMenu = None
         
     def activate(self):
         iface_gui_plugin.activate(self)
         self._widget = None
-        LunchMenu.initialize(self.get_option(u"url"))
         
     def deactivate(self):
         iface_gui_plugin.deactivate(self)
@@ -23,13 +25,25 @@ class lunch_menu_structured(iface_gui_plugin, LunchCLIModule):
 
     def create_widget(self, parent):
         self._widget = LunchMenuWidget(parent)
+        # TODO update regularly
+        self._initLunchMenu = AsyncCall(self._widget,
+                                        LunchMenu.initialize,
+                                        self._widget.createNotebook)
+
+        # first time, call initializeLayout instead of createNotebook        
+        AsyncCall(self._widget,
+                  LunchMenu.initialize,
+                  self._widget.initializeLayout)(self.get_option(u"url"))
         return self._widget
     
+    def destroy_widget(self):
+        self._initLunchMenu = None
+        self._widget = None
+        iface_gui_plugin.destroy_widget(self)
+    
     def _urlChanged(self, _oldVal, newVal):
-        LunchMenu.initialize(newVal)
         if self._widget != None:
-            self._widget.createNotebook()
-            self._widget.goToday()
+            self._initLunchMenu(newVal)
         return newVal
     
     def add_menu(self,menu):
