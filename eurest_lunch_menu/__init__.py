@@ -227,6 +227,8 @@ class LunchMenu (object):
                         
                     if u"description" in dishDict:
                         description = dishDict[u"description"][localeStr].strip()
+                        if len(description) <= 1:
+                            description = None
                     else:
                         description = None
                         
