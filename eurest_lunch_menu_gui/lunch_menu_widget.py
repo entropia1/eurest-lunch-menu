@@ -357,5 +357,5 @@ if __name__ == "__main__":
                   w.initializeLayout)("http://app.sap.eurest.de//mobileajax/data/46ba857b78fd4e51301592db98f8d9ae/all.json")
         return w
     
-    from lunchinator.iface_plugins import iface_gui_plugin
+    from lunchinator.plugin import iface_gui_plugin
     iface_gui_plugin.run_standalone(initWidget)

@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from lunchinator.iface_plugins import iface_gui_plugin
+from lunchinator.plugin import iface_gui_plugin
 from eurest_lunch_menu_gui.lunch_menu_widget import LunchMenuWidget
 from eurest_lunch_menu import LunchMenu
 from lunchinator.cli import LunchCLIModule

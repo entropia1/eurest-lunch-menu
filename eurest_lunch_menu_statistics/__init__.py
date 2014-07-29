@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from lunchinator.iface_plugins import *
+from lunchinator.plugin import iface_general_plugin
 import threading
 import os
 import inspect
