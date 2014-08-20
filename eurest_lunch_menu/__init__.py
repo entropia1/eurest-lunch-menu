@@ -134,7 +134,6 @@ class LunchMenu (object):
         cls._toggleMessages = cls.loadMessagesForLocale(cls._messages["toggleLocale"])
         
         try:
-            locale.setlocale(locale.LC_TIME, (cls.defaultLocaleString,"UTF-8"))
             cls._lunchMenus, cls._additives = cls.readLunchMenus(cls.defaultLocaleString, cls._messages)
         except Exception as e:
             log_exception(u"Error reading lunch menus")
@@ -144,17 +143,11 @@ class LunchMenu (object):
             pass
         
         try:
-            locale.setlocale(locale.LC_TIME, (cls._messages['toggleLocale'],"UTF-8"))
             cls._toggleLunchMenus, cls._toggleAdditives = cls.readLunchMenus(cls._messages['toggleLocale'], cls._toggleMessages)
         except Exception as e:
             cls._toggleLunchMenus = []
             for _ in range(5):
                 cls._toggleLunchMenus.append(e)
-            pass
-        
-        try:
-            locale.setlocale(locale.LC_TIME, (cls.defaultLocaleString,"UTF-8"))
-        except:
             pass
         
         cls._allLunchMenus = cls._lunchMenus + cls._toggleLunchMenus

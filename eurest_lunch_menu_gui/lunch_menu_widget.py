@@ -6,12 +6,8 @@ import locale
 import subprocess
 from PyQt4.QtGui import QLabel, QWidget, QHBoxLayout, QVBoxLayout, QPushButton, QComboBox, QTextEdit, QStackedWidget, QToolButton, QFont, QMessageBox, QSizePolicy, QTextListFormat
 from PyQt4.QtCore import Qt, QSize, QEvent, QPoint
-
-try:
-    from lunchinator import log_exception, log_debug, convert_string
-except ImportError:
-    sys.path.insert(0, os.getenv("HOME") + "/.lunchinator-dist-sap")
-    from lunchinator import log_exception, log_debug, convert_string
+from lunchinator import log_exception, log_debug, convert_string
+from lunchinator.utilities import getPlatform, PLATFORM_WINDOWS
 
 try:
     from eurest_lunch_menu import LunchMenu
@@ -316,7 +312,8 @@ class LunchMenuWidget(QWidget):
         for index in range(10):
             if index == 5:
                 try:
-                    locale.setlocale(locale.LC_TIME, (self.messages["toggleLocale"],"UTF-8"))
+                    if getPlatform() != PLATFORM_WINDOWS:
+                        locale.setlocale(locale.LC_TIME, (self.messages["toggleLocale"],"UTF-8"))
                 except:
                     log_exception("error setting locale")
                 curMessages = self.toggleMessages
@@ -342,7 +339,8 @@ class LunchMenuWidget(QWidget):
             
             self.menuNotebook.addWidget(pageWidget)
         try:
-            locale.setlocale(locale.LC_TIME, (LunchMenu.defaultLocaleString,"UTF-8"))
+            if getPlatform() != PLATFORM_WINDOWS:
+                locale.setlocale(locale.LC_TIME, (LunchMenu.defaultLocaleString,"UTF-8"))
         except:
             log_exception("error setting locale")
         
