@@ -187,7 +187,7 @@ class LunchMenu (object):
     @classmethod
     def readLunchMenus(cls, localeStr, messages):
         if not cls._url:
-            return [Exception(messages[u"checkURL"])]*5
+            return [Exception(messages[u"checkURL"])]*5, {}
         
         lunchMenus = [None, None, None, None, None]
         localeStr = localeStr[:2]
