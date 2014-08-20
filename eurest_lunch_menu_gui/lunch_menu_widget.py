@@ -30,10 +30,6 @@ class GrowingTextEdit(QTextEdit):
         self.setSizePolicy(QSizePolicy.MinimumExpanding, QSizePolicy.Maximum)
         self.sizeChange()
 
-    def resizeEvent(self, *args, **kwargs):
-        self.sizeChange()
-        return QTextEdit.resizeEvent(self, *args, **kwargs)
-
     def sizeChange(self):
         docHeight = self.document().size().height()
         if self.heightMin <= docHeight <= self.heightMax:
@@ -57,7 +53,9 @@ class GrowingTextEdit(QTextEdit):
             self.setToolTip(u"%s: %s" % (self.additives[offset], self.additivesDict[self.additives[offset]]))
     
     def event(self, event):
-        if event.type() == QEvent.ToolTip:
+        if event.type() == QEvent.Resize:
+            self.sizeChange()
+        elif event.type() == QEvent.ToolTip:
             self.showToolTip(event.x(), event.y())
         return QTextEdit.event(self, event)
     
