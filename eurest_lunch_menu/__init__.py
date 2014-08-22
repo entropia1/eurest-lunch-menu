@@ -1,19 +1,7 @@
 # -*- coding: utf-8 -*-
 from StringIO import StringIO
-import locale
-import time
-import datetime
-import inspect
-import csv
-import calendar
-import re
-import sys
-import os
-import urllib2
-from lunchinator import log_debug, log_exception
-import codecs
-import contextlib
-import json
+from lunchinator.log import getLogger
+import locale, time, datetime, inspect, csv, calendar, re, sys, os, urllib2, codecs, contextlib, json
 
 class LunchMenu (object):    
     def __init__(self):
@@ -136,7 +124,7 @@ class LunchMenu (object):
         try:
             cls._lunchMenus, cls._additives = cls.readLunchMenus(cls.defaultLocaleString, cls._messages)
         except Exception as e:
-            log_exception(u"Error reading lunch menus")
+            getLogger().exception(u"Error reading lunch menus")
             cls._lunchMenus = []
             for _ in range(5):
                 cls._lunchMenus.append(e)
