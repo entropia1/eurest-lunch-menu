@@ -6,9 +6,7 @@ import locale
 import subprocess
 from PyQt4.QtGui import QLabel, QWidget, QHBoxLayout, QVBoxLayout, QPushButton, QComboBox, QTextEdit, QStackedWidget, QToolButton, QFont, QMessageBox, QSizePolicy, QTextListFormat
 from PyQt4.QtCore import Qt, QSize, QEvent, QPoint
-from lunchinator import convert_string
-from lunchinator.log import getLogger, loggingFunc
-from lunchinator.log.logging_slot import loggingSlot
+from lunchinator import log_exception, log_debug, convert_string
 from lunchinator.utilities import getPlatform, PLATFORM_WINDOWS
 
 try:
@@ -96,8 +94,7 @@ class LunchMenuWidget(QWidget):
         box = QVBoxLayout(self)
         box.addWidget(QLabel(u"Initializing...", self))
     
-    @loggingSlot(object)
-    def initializeLayout(self, _res=None):
+    def initializeLayout(self):
         layout = self.layout()
         
         child = layout.takeAt(0)
@@ -126,13 +123,11 @@ class LunchMenuWidget(QWidget):
         button.setArrowType(arrow_type)
         return button
     
-    @loggingSlot()
     def goLeft(self):
         curIndex = self.combobox.currentIndex()
         if curIndex > 0:
             self.combobox.setCurrentIndex(curIndex - 1)
     
-    @loggingSlot()
     def goRight(self):
         curIndex = self.combobox.currentIndex()
         if curIndex < 4:
@@ -161,7 +156,6 @@ class LunchMenuWidget(QWidget):
                 
         self.combobox.setCurrentIndex(minDeltaI)
             
-    @loggingSlot()
     def goTodayClicked(self):
         self.goToday()
         
@@ -169,7 +163,6 @@ class LunchMenuWidget(QWidget):
         index = self.menuNotebook.currentIndex()
         return (index >= 5)
         
-    @loggingSlot(int)
     def changed_combo(self,index):
         if self.isToggled():
             self.menuNotebook.setCurrentIndex(index + 5)
@@ -178,7 +171,6 @@ class LunchMenuWidget(QWidget):
         self.leftButton.setEnabled(index != 0)
         self.rightButton.setEnabled(index != 4)
    
-    @loggingSlot()
     def toggleLanguage(self):
         index = self.menuNotebook.currentIndex()
         isToggle = (index >= 5)
@@ -263,10 +255,8 @@ class LunchMenuWidget(QWidget):
         else:
             QMessageBox().information(self.menuNotebook, "Success", self.messages['installLocaleSuccess'], buttons=QMessageBox.Ok, defaultButton=QMessageBox.Ok)
     
-    @loggingSlot()
     def installLanguageSupport(self):
         self.installLanguageSupportForLocale(self.defaultLocaleString)
-    @loggingSlot()
     def installLanguageSupportToggle(self):
         self.installLanguageSupportForLocale(self.messages['toggleLocale'])
 
@@ -288,7 +278,7 @@ class LunchMenuWidget(QWidget):
             contentList = menuContents[desc]
         else:
             contentList = [messages[u'noContents']]
-            getLogger().debug("lunch menu does not contain key '%s'" % desc)
+            log_debug("lunch menu does not contain key '%s'" % desc)
         
         textview = GrowingTextEdit(parent, messages, additivesDict)
         textview.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -311,8 +301,7 @@ class LunchMenuWidget(QWidget):
         
         box.addWidget(textview, 0)
     
-    @loggingSlot(object)
-    def createNotebook(self, _res=None):
+    def createNotebook(self):
         self.combobox.setCurrentIndex(0)
         for _ in range(self.menuNotebook.count()):
             self.menuNotebook.removeWidget(self.menuNotebook.widget(0))
@@ -324,7 +313,7 @@ class LunchMenuWidget(QWidget):
                     if getPlatform() != PLATFORM_WINDOWS:
                         locale.setlocale(locale.LC_TIME, (self.messages["toggleLocale"],"UTF-8"))
                 except:
-                    getLogger().exception("error setting locale")
+                    log_exception("error setting locale")
                 curMessages = self.toggleMessages
                 curAdditives = self.toggleAdditives
             pageWidget = QWidget(self.menuNotebook)
@@ -351,7 +340,7 @@ class LunchMenuWidget(QWidget):
             if getPlatform() != PLATFORM_WINDOWS:
                 locale.setlocale(locale.LC_TIME, (LunchMenu.defaultLocaleString,"UTF-8"))
         except:
-            getLogger().exception("error setting locale")
+            log_exception("error setting locale")
         
         self.goToday()
 

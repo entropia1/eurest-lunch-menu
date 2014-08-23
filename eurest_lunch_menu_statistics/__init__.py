@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
+from lunchinator.plugin import iface_general_plugin
 import threading
 import os
 import inspect
 import sys
 import time
 from eurest_lunch_menu import LunchMenu
-from lunchinator import get_server
-from lunchinator.plugin import iface_general_plugin
-from lunchinator.log import getLogger
+from lunchinator import get_server, log_error
 
 class LunchStatisticsThread(threading.Thread):
     def __init__(self, connectionPlugin):
@@ -20,7 +19,7 @@ class LunchStatisticsThread(threading.Thread):
         stats = get_server().getDBConnection()
         if stats == None and not self.statDBErrorLogged:
             self.statDBErrorLogged = True
-            getLogger().error("Lunch Statistics Plugin: No database connection available.")
+            log_error("Lunch Statistics Plugin: No database connection available.")
         return stats
     
     def insertOrUpdate(self, aLunchMenu, aLunchEntry, tableName):
