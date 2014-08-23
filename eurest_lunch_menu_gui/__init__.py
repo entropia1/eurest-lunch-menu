@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from lunchinator.plugin import iface_gui_plugin
 from eurest_lunch_menu_gui.lunch_menu_widget import LunchMenuWidget
-from eurest_lunch_menu import LunchMenu
+from eurest_lunch_menu import LunchMenus
 from lunchinator.cli import LunchCLIModule
 from lunchinator.callables import AsyncCall
 from functools import partial
@@ -24,15 +24,18 @@ class lunch_menu_structured(iface_gui_plugin, LunchCLIModule):
         return "Eurest Lunch Menu"
 
     def create_widget(self, parent):
-        self._widget = LunchMenuWidget(parent)
+        self._lunchMenus = LunchMenus(self.logger)
+        self._widget = LunchMenuWidget(self.logger, self._lunchMenus, parent)
         # TODO update regularly
         self._initLunchMenu = AsyncCall(self._widget,
-                                        LunchMenu.initialize,
+                                        self.logger,
+                                        self._lunchMenus.initialize,
                                         self._widget.createNotebook)
 
         # first time, call initializeLayout instead of createNotebook        
         AsyncCall(self._widget,
-                  LunchMenu.initialize,
+                  self.logger,
+                  self._lunchMenus.initialize,
                   self._widget.initializeLayout)(self.get_option(u"url"))
         return self._widget
     
@@ -50,7 +53,7 @@ class lunch_menu_structured(iface_gui_plugin, LunchCLIModule):
         pass
     
     def getWeekdays(self):
-        return [day.lower() for day in LunchMenu.getEnglishWeekdays()]
+        return [day.lower() for day in self._lunchMenus.getEnglishWeekdays()]
     
     def handleCommand(self, cmd):
         cmd = cmd.lower()
@@ -80,8 +83,8 @@ class lunch_menu_structured(iface_gui_plugin, LunchCLIModule):
         import shlex
         args = shlex.split(args)
         
-        self.weekdayToPrint = LunchMenu.today().weekday()
-        self.languageToPrint = LunchMenu.defaultLocaleString
+        self.weekdayToPrint = self._lunchMenus.today().weekday()
+        self.languageToPrint = self._lunchMenus.defaultLocaleString
         
         if len(args) > 0:
             if not self.handleCommand(args.pop(0)):
@@ -91,13 +94,13 @@ class lunch_menu_structured(iface_gui_plugin, LunchCLIModule):
             if not self.handleCommand(args.pop(0)):
                 return False
             
-        lunchMenu = LunchMenu.getLunchMenu(self.weekdayToPrint, self.languageToPrint)
+        lunchMenu = self._lunchMenus.getLunchMenu(self.weekdayToPrint, self.languageToPrint)
         if lunchMenu == None:
             print "No lunch for this day."
         else:
-            print "*** Lunch menu for %s ***" % (lunchMenu.lunchDate.strftime(LunchMenu.getEnglishMessages()['dateFormatDisplayed']))
+            print "*** Lunch menu for %s ***" % (lunchMenu.lunchDate.strftime(self._lunchMenus.getEnglishMessages()['dateFormatDisplayed']))
             
-            messages = LunchMenu.getMessages(self.languageToPrint)
+            messages = self._lunchMenus.getMessages(self.languageToPrint)
             print "%s: %s" % (messages['soupDisplayed'], lunchMenu.contents[messages['soupDisplayed']])
             print "%s:" % messages['supplementsDisplayed']
             for aSideDish in lunchMenu.contents[messages['supplementsDisplayed']]:

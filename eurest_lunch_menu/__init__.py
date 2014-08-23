@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 from StringIO import StringIO
-from lunchinator.log import getLogger
 import locale, time, datetime, inspect, csv, calendar, re, sys, os, urllib2, codecs, contextlib, json
 
-class LunchMenu (object):    
+class LunchMenu(object):    
     def __init__(self):
         self.lunchDate = None
         self.contents = {}
@@ -14,139 +13,125 @@ class LunchMenu (object):
     def __str__(self):
         return "%s" % (self.contents)
     
+class LunchMenus(object):
     # TODO maybe add compatible locales (e.g. de_CH) 
     supportedLocales = ["de_DE", "de", "en_US"]
     fallbackLocale = "en_US"
     defaultLocaleString = None
     
-    _url = None
-    _messages = None
-    _toggleMessages = None
+    def __init__(self, logger):
+        self._logger = logger
+        
+        self._url = None
+        self._messages = None
+        self._toggleMessages = None
+        
+        self._lunchMenus = None
+        self._toggleLunchMenus= None
+        self._allLunchMenus = None
+        
+        self._additives = None
+        self._toggleAdditives = None
+        
+        self._lastUpdate = None
+        
+    def initialize(self, url=None):
+        if url:
+            self._url = url
+        try:
+            self.defaultLocaleString = locale.getdefaultlocale()[0]
+            if not self.defaultLocaleString in self.supportedLocales:
+                self.defaultLocaleString = self.fallbackLocale
+        except:
+            self.defaultLocaleString = self.fallbackLocale
+        
+        self._messages = self.loadMessagesForLocale(self.defaultLocaleString)
+        self._toggleMessages = self.loadMessagesForLocale(self._messages["toggleLocale"])
+        
+        try:
+            self._lunchMenus, self._additives = self.readLunchMenus(self.defaultLocaleString, self._messages)
+        except Exception as e:
+            self._logger.exception(u"Error reading lunch menus")
+            self._lunchMenus = []
+            for _ in range(5):
+                self._lunchMenus.append(e)
+            pass
+        
+        try:
+            self._toggleLunchMenus, self._toggleAdditives = self.readLunchMenus(self._messages['toggleLocale'], self._toggleMessages)
+        except Exception as e:
+            self._toggleLunchMenus = []
+            for _ in range(5):
+                self._toggleLunchMenus.append(e)
+            pass
+        
+        self._allLunchMenus = self._lunchMenus + self._toggleLunchMenus
+        self._lastUpdate = datetime.datetime.now()
     
-    _lunchMenus = None
-    _toggleLunchMenus= None
-    _allLunchMenus = None
-    
-    _additives = None
-    _toggleAdditives = None
-    
-    _lastUpdate = None
-    
-    @classmethod
-    def _checkOutdated(cls):
+    def _checkOutdated(self):
         now = datetime.datetime.now()
-        td = now - cls._lastUpdate
+        td = now - self._lastUpdate
         difference = (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
-        if cls._lastUpdate == None or difference > 60*60:
-            cls.initialize()
+        if self._lastUpdate == None or difference > 60*60:
+            self.initialize()
     
-    @classmethod
-    def lunchMenus(cls):
-        cls._checkOutdated()
-        return cls._lunchMenus
+    def lunchMenus(self):
+        self._checkOutdated()
+        return self._lunchMenus
     
-    @classmethod
-    def toggleLunchMenus(cls):
-        cls._checkOutdated()
-        return cls._toggleLunchMenus
+    def toggleLunchMenus(self):
+        self._checkOutdated()
+        return self._toggleLunchMenus
     
-    @classmethod
-    def allLunchMenus(cls):
-        cls._checkOutdated()
-        return cls._allLunchMenus
+    def allLunchMenus(self):
+        self._checkOutdated()
+        return self._allLunchMenus
 
-    @classmethod
-    def messages(cls):
-        cls._checkOutdated()
-        return cls._messages
+    def messages(self):
+        self._checkOutdated()
+        return self._messages
     
-    @classmethod
-    def toggleMessages(cls):
-        cls._checkOutdated()
-        return cls._toggleMessages
+    def toggleMessages(self):
+        self._checkOutdated()
+        return self._toggleMessages
     
-    @classmethod
-    def additives(cls):
-        return cls._additives
+    def additives(self):
+        return self._additives
     
-    @classmethod
-    def toggleAdditives(cls):
-        return cls._toggleAdditives
+    def toggleAdditives(self):
+        return self._toggleAdditives
     
-    @classmethod
-    def getEnglishMenus(cls):
-        return cls.lunchMenus() if "en" in cls.defaultLocaleString else cls.toggleLunchMenus()
+    def getEnglishMenus(self):
+        return self.lunchMenus() if "en" in self.defaultLocaleString else self.toggleLunchMenus()
     
-    @classmethod
-    def getGermanMenus(cls):
-        return cls.lunchMenus() if "de" in cls.defaultLocaleString else cls.toggleLunchMenus()
+    def getGermanMenus(self):
+        return self.lunchMenus() if "de" in self.defaultLocaleString else self.toggleLunchMenus()
     
-    @classmethod
-    def getEnglishMessages(cls):
-        return cls.messages() if "en" in cls.defaultLocaleString else cls.toggleMessages()
+    def getEnglishMessages(self):
+        return self.messages() if "en" in self.defaultLocaleString else self.toggleMessages()
     
-    @classmethod
-    def getGermanMessages(cls):
-        return cls.messages() if "de" in cls.defaultLocaleString else cls.toggleMessages()
+    def getGermanMessages(self):
+        return self.messages() if "de" in self.defaultLocaleString else self.toggleMessages()
 
-    @classmethod
-    def getEnglishWeekdays(cls):
-        cls._checkOutdated()
-        englishMessages = cls.getEnglishMessages()
+    def getEnglishWeekdays(self):
+        self._checkOutdated()
+        englishMessages = self.getEnglishMessages()
         return [englishMessages['monday'], englishMessages['tuesday'], englishMessages['wednesday'], englishMessages['thursday'], englishMessages['friday']]
 
-    @classmethod
-    def getMessages(cls, localeString):
-        return cls.getGermanMessages() if "de" in localeString else cls.getEnglishMessages()
+    def getMessages(self, localeString):
+        return self.getGermanMessages() if "de" in localeString else self.getEnglishMessages()
 
-    @classmethod
-    def getLunchMenu(cls, weekday, localeString):
+    def getLunchMenu(self, weekday, localeString):
         weekday = weekday % 7
         if weekday > 4:
             return None
-        menus = cls.getGermanMenus() if "de" in localeString else cls.getEnglishMenus()
+        menus = self.getGermanMenus() if "de" in localeString else self.getEnglishMenus()
         return menus[weekday]
-        
-    @classmethod
-    def initialize(cls, url=None):
-        if url:
-            cls._url = url
-        try:
-            cls.defaultLocaleString = locale.getdefaultlocale()[0]
-            if not cls.defaultLocaleString in cls.supportedLocales:
-                cls.defaultLocaleString = cls.fallbackLocale
-        except:
-            cls.defaultLocaleString = cls.fallbackLocale
-        
-        cls._messages = cls.loadMessagesForLocale(cls.defaultLocaleString)
-        cls._toggleMessages = cls.loadMessagesForLocale(cls._messages["toggleLocale"])
-        
-        try:
-            cls._lunchMenus, cls._additives = cls.readLunchMenus(cls.defaultLocaleString, cls._messages)
-        except Exception as e:
-            getLogger().exception(u"Error reading lunch menus")
-            cls._lunchMenus = []
-            for _ in range(5):
-                cls._lunchMenus.append(e)
-            pass
-        
-        try:
-            cls._toggleLunchMenus, cls._toggleAdditives = cls.readLunchMenus(cls._messages['toggleLocale'], cls._toggleMessages)
-        except Exception as e:
-            cls._toggleLunchMenus = []
-            for _ in range(5):
-                cls._toggleLunchMenus.append(e)
-            pass
-        
-        cls._allLunchMenus = cls._lunchMenus + cls._toggleLunchMenus
-        cls._lastUpdate = datetime.datetime.now()
     
-    @classmethod
-    def today(cls):
+    def today(self):
         return datetime.date.today()
     
-    @classmethod
-    def loadMessages(cls, path):
+    def loadMessages(self, path):
         msgDict = {}
         with open(path, "rb") as inFile:
             tsvreader = csv.reader(inFile, delimiter='\t')
@@ -154,17 +139,15 @@ class LunchMenu (object):
                 msgDict[row[0].decode("utf-8")] = row[1].decode("utf-8")
         return msgDict
     
-    @classmethod
-    def loadMessagesForLocale(cls, localeString):
+    def loadMessagesForLocale(self, localeString):
         moduleFolder = os.path.realpath(os.path.abspath(os.path.join(os.path.split(inspect.getfile( inspect.currentframe() ))[0])))
         currentLocalePath = "%s/lunch_menu_strings_%s.tsv" % (moduleFolder, localeString)
         if (os.path.isfile(currentLocalePath)):
-            return cls.loadMessages(currentLocalePath)
+            return self.loadMessages(currentLocalePath)
         else:
-            return cls.loadMessages("%s/lunch_menu_strings.tsv" % (moduleFolder))
+            return self.loadMessages("%s/lunch_menu_strings.tsv" % (moduleFolder))
     
-    @classmethod
-    def addListMenuContent(cls, menu, displayedKey, content):
+    def addListMenuContent(self, menu, displayedKey, content):
         if displayedKey in menu.contents:
             l = menu.contents[displayedKey]
         else:
@@ -172,15 +155,14 @@ class LunchMenu (object):
         l.append(content)
         menu.contents[displayedKey] = l  
     
-    @classmethod
-    def readLunchMenus(cls, localeStr, messages):
-        if not cls._url:
+    def readLunchMenus(self, localeStr, messages):
+        if not self._url:
             return [Exception(messages[u"checkURL"])]*5, {}
         
         lunchMenus = [None, None, None, None, None]
         localeStr = localeStr[:2]
         
-        with contextlib.closing(urllib2.urlopen(cls._url)) as urlInput:
+        with contextlib.closing(urllib2.urlopen(self._url)) as urlInput:
             lunchJSON = urlInput.read()
             lunchObj = json.loads(lunchJSON)
             
@@ -230,13 +212,18 @@ class LunchMenu (object):
                                 keyInfo = keyInfo[keyInfo.index(u"(") + 1:keyInfo.index(u")")]
                                 
                             lineContent = (title, description, additives, keyInfo)
-                            cls.addListMenuContent(menu, messages[keyBase + u"Displayed"], lineContent)
+                            self.addListMenuContent(menu, messages[keyBase + u"Displayed"], lineContent)
             
             lunchMenus[days.index(weekDay)] = menu
                 
         return lunchMenus, additivesDict
 
 if __name__ == '__main__':
-    LunchMenu.initialize()
-    for menu in LunchMenu.getGermanMenus():
-        print menu.contents
+    from lunchinator.log import initializeLogger, getCoreLogger
+    initializeLogger()
+    l = LunchMenus(getCoreLogger())
+    l.initialize()
+    for menu in l.getGermanMenus():
+        print unicode(menu)
+        
+        

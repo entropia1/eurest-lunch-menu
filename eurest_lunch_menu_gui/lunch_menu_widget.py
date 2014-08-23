@@ -7,7 +7,6 @@ import subprocess
 from PyQt4.QtGui import QLabel, QWidget, QHBoxLayout, QVBoxLayout, QPushButton, QComboBox, QTextEdit, QStackedWidget, QToolButton, QFont, QMessageBox, QSizePolicy, QTextListFormat
 from PyQt4.QtCore import Qt, QSize, QEvent, QPoint
 from lunchinator import convert_string
-from lunchinator.log import getLogger, loggingFunc
 from lunchinator.log.logging_slot import loggingSlot
 from lunchinator.utilities import getPlatform, PLATFORM_WINDOWS
 
@@ -90,9 +89,11 @@ class LunchMenuWidget(QWidget):
     textViewIndex = 0
     textViewAdditivesMap = {}
     
-    def __init__(self, parent):
+    def __init__(self, logger, lunchMenus, parent):
         super(LunchMenuWidget, self).__init__(parent)
         
+        self.logger = logger
+        self._lunchMenus = lunchMenus
         box = QVBoxLayout(self)
         box.addWidget(QLabel(u"Initializing...", self))
     
@@ -105,11 +106,11 @@ class LunchMenuWidget(QWidget):
             child.widget().deleteLater()
             child = layout.takeAt(0)
         
-        self.messages = LunchMenu.messages()
-        self.toggleMessages = LunchMenu.toggleMessages()
+        self.messages = self._lunchMenus.messages()
+        self.toggleMessages = self._lunchMenus.toggleMessages()
         
-        self.additives = LunchMenu.additives()
-        self.toggleAdditives = LunchMenu.toggleAdditives()
+        self.additives = self._lunchMenus.additives()
+        self.toggleAdditives = self._lunchMenus.toggleAdditives()
         
         buttonBar = self.createButtonBar(self)
         
@@ -139,12 +140,12 @@ class LunchMenuWidget(QWidget):
             self.combobox.setCurrentIndex(curIndex + 1)
     
     def goToday(self):
-        now = LunchMenu.today()
+        now = self._lunchMenus.today()
         
         minDelta = sys.maxint
         minDeltaI = 0
         i = 0
-        for aLunchMenu in LunchMenu.allLunchMenus():
+        for aLunchMenu in self._lunchMenus.allLunchMenus():
             if aLunchMenu == None or isinstance(aLunchMenu, Exception):
                 # parse error, use current day of week
                 if now.weekday() < 5:
@@ -288,7 +289,7 @@ class LunchMenuWidget(QWidget):
             contentList = menuContents[desc]
         else:
             contentList = [messages[u'noContents']]
-            getLogger().debug("lunch menu does not contain key '%s'" % desc)
+            self.logger.debug("lunch menu does not contain key '%s'" % desc)
         
         textview = GrowingTextEdit(parent, messages, additivesDict)
         textview.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -324,12 +325,12 @@ class LunchMenuWidget(QWidget):
                     if getPlatform() != PLATFORM_WINDOWS:
                         locale.setlocale(locale.LC_TIME, (self.messages["toggleLocale"],"UTF-8"))
                 except:
-                    getLogger().exception("error setting locale")
+                    self.logger.exception("error setting locale")
                 curMessages = self.toggleMessages
                 curAdditives = self.toggleAdditives
             pageWidget = QWidget(self.menuNotebook)
             page = QVBoxLayout(pageWidget)
-            thisLunchMenu = LunchMenu.allLunchMenus()[index]
+            thisLunchMenu = self._lunchMenus.allLunchMenus()[index]
             if thisLunchMenu != None and type(thisLunchMenu) == LunchMenu:
                 title = curMessages['lunchMenuFor'] + u" " + thisLunchMenu.lunchDate.strftime(curMessages['dateFormatDisplayed']).decode("utf-8")
                 self.addMenuLine(pageWidget, title, page, True)
@@ -349,18 +350,22 @@ class LunchMenuWidget(QWidget):
             self.menuNotebook.addWidget(pageWidget)
         try:
             if getPlatform() != PLATFORM_WINDOWS:
-                locale.setlocale(locale.LC_TIME, (LunchMenu.defaultLocaleString,"UTF-8"))
+                locale.setlocale(locale.LC_TIME, (self._lunchMenus.defaultLocaleString,"UTF-8"))
         except:
-            getLogger().exception("error setting locale")
+            self.logger.exception("error setting locale")
         
         self.goToday()
 
 if __name__ == "__main__":
     def initWidget(window):
+        from eurest_lunch_menu import LunchMenus
         from lunchinator.callables import AsyncCall
-        w = LunchMenuWidget(window)
+        from lunchinator.log import getCoreLogger
+        lm = LunchMenus(getCoreLogger())
+        w = LunchMenuWidget(getCoreLogger(), lm, window)
         AsyncCall(w,
-                  LunchMenu.initialize,
+                  getCoreLogger(),
+                  lm.initialize,
                   w.initializeLayout)("http://app.sap.eurest.de//mobileajax/data/46ba857b78fd4e51301592db98f8d9ae/all.json")
         return w
     
