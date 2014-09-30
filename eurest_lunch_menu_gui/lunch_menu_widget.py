@@ -288,7 +288,7 @@ class LunchMenuWidget(QWidget):
         if desc in menuContents:
             contentList = menuContents[desc]
         else:
-            contentList = [messages[u'noContents']]
+            contentList = [(messages[u'noContents'], None, [], None)]
             self.logger.debug("lunch menu does not contain key '%s'" % desc)
         
         textview = GrowingTextEdit(parent, messages, additivesDict)
