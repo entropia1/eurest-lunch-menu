@@ -27,11 +27,13 @@ class lunch_menu_structured(iface_gui_plugin, LunchCLIModule):
         self._widget = LunchMenuWidget(parent)
         # TODO update regularly
         self._initLunchMenu = AsyncCall(self._widget,
+                                        self.logger,
                                         LunchMenu.initialize,
                                         self._widget.createNotebook)
 
         # first time, call initializeLayout instead of createNotebook        
         AsyncCall(self._widget,
+                  self.logger,
                   LunchMenu.initialize,
                   self._widget.initializeLayout)(self.get_option(u"url"))
         return self._widget
