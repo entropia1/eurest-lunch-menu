@@ -10,7 +10,10 @@ from lunchinator.logging_mutex import loggingMutex
 class lunch_statistics(iface_general_plugin):
     def __init__(self):
         super(lunch_statistics, self).__init__()
-        self.options = [((u"url", u"Lunch Menu URL", self._urlChanged), "")]
+        self.options = [((u"db_connection", u"DB Connection", [],
+                          self.reconnect_db),
+                         get_settings().get_default_db_connection()),
+                        ((u"url", u"Lunch Menu URL", self._urlChanged), "")]
         self.statisticsThread = None
         self._lock = loggingMutex(u"Eurest Lunch Menu Statistics", logging=get_settings().get_verbose())
         self.add_supported_dbms("SQLite Connection", _SQLCommandsSQLite)
@@ -21,6 +24,11 @@ class lunch_statistics(iface_general_plugin):
         self._stopTimer()
         self._startTimer()
         
+    def _getChoiceOptions(self, o):
+        if o == u"db_connection":
+            return get_settings().get_available_db_connections()
+        return super(lunch_statistics, self)._getChoiceOptions(o)
+    
     def _formatTitleAndDescription(self, title, description, keyInfo):
         if title and description:
             result = "%s, %s" % (title, description)
@@ -100,7 +108,7 @@ class lunch_statistics(iface_general_plugin):
             
     def _startTimer(self, timeout=0):
         if not self.get_option(u"url"):
-            self.logger.warning("Cannot start lunch statistics thread, no URL given.")
+            self.logger.error("Cannot start lunch statistics thread, no URL given.")
         else:
             self.timer = Timer(timeout, partial(self._updateLunchStatistics, self.get_option(u"url")))
             self.timer.start()
